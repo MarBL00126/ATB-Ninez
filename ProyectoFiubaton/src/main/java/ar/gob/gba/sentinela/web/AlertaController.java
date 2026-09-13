@@ -39,9 +39,6 @@ public class AlertaController {
 		if (!permissionEvaluator.hasGlobalAccess(authentication)) {
 			String scopedLocalidad = requireScopedLocalidad(authentication);
 			List<NNyALegajo> legajos = legajoService.listar(scopedLocalidad);
-			if (estado == EstadoAlerta.PENDIENTE) {
-				legajoService.asegurarBandejaPendiente(legajos);
-			}
 			List<String> idsNnya = legajos.stream()
 					.map(NNyALegajo::getIdNnya)
 					.toList();
