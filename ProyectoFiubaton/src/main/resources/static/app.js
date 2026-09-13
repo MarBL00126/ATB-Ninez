@@ -81,18 +81,20 @@ function bindForms() {
 
   byId("intervention-form").addEventListener("submit", async (event) => {
     event.preventDefault();
+    const form = event.currentTarget;
     const idNnya = state.selectedCaseId || byId("case-form").elements.idNnya.value;
     if (!idNnya) {
       renderStatus("Seleccione un legajo");
       return;
     }
-    const payload = Object.fromEntries(new FormData(event.currentTarget).entries());
-    await apiJson(`/api/v1/intervenciones/${encodeURIComponent(idNnya)}`, {
+    const payload = Object.fromEntries(new FormData(form).entries());
+    const saved = await apiJson(`/api/v1/intervenciones/${encodeURIComponent(idNnya)}`, {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    event.currentTarget.reset();
-    event.currentTarget.elements.profesional.value = "equipo-demo";
+    if (!saved) return;
+    form.reset();
+    form.elements.profesional.value = "equipo-demo";
     renderStatus("Intervencion registrada");
   });
 
@@ -341,19 +343,34 @@ function selectCase(idNnya) {
 
 function renderEvaluation(result) {
   const score = Number(result.scoreRiesgo || 0);
+  const scorePoints = Math.round(score * 100);
   const categories = extractCategories(result.explicacion);
-  byId("evaluation-result").innerHTML = `
+  const container = byId("evaluation-result");
+  const isCritical = score >= 0.8;
+  container.className = `evaluation-result ${isCritical ? "critical" : ""}`;
+  container.innerHTML = `
     <div class="result-score">
-      <span class="eyebrow">${escapeHtml(result.idNnya || "NNYA")}</span>
-      <strong class="${score >= 0.8 ? "severity-high" : score >= 0.65 ? "severity-mid" : ""}">${score.toFixed(2)}</strong>
-      <div class="score-bar" style="--score-width:${Math.round(score * 100)}%"><span></span></div>
-      <span class="status-chip ${score >= 0.7 ? "" : "muted"}">${score >= 0.7 ? "Derivar" : "Monitorear"}</span>
+      <div class="result-kicker">
+        <span class="eyebrow">${escapeHtml(result.idNnya || "NNYA")}</span>
+      </div>
+      <strong class="${isCritical ? "severity-high" : score >= 0.65 ? "severity-mid" : ""}">${scorePoints}</strong>
+      <span class="score-caption">puntos de riesgo</span>
+      <div class="score-bar result-bar" style="--score-width:${Math.round(score * 100)}%"><span></span></div>
+      <div class="decision-banner ${score >= 0.7 ? "urgent" : "muted"}">${score >= 0.7 ? "Derivar" : "Monitorear"}</div>
     </div>
     <div class="result-details">
-      <p>${escapeHtml(result.explicacion || "Evaluacion calculada en modo demo.")}</p>
-      <div class="pill-row">${categories.map((item) => `<span class="pill">${escapeHtml(item)}</span>`).join("")}</div>
+      <span class="eyebrow">Factores detectados</span>
+      <div class="risk-factor-grid">${categories.map((item) => `<span class="risk-factor">${escapeHtml(labelCategory(item))}</span>`).join("")}</div>
     </div>
   `;
+}
+
+function labelCategory(value) {
+  return String(value || "")
+    .split("_")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function renderPaperResults(results) {

@@ -319,6 +319,16 @@ textarea:focus {
   color: var(--muted);
 }
 
+.status-chip.urgent {
+  background: var(--danger);
+  color: #fff;
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .list {
   display: grid;
   gap: 10px;
@@ -487,20 +497,94 @@ textarea:focus {
   padding: 20px;
 }
 
+.evaluation-result {
+  border: 1px solid rgba(179, 68, 63, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff, #fff8f3);
+  box-shadow: 0 18px 42px rgba(99, 37, 33, 0.14);
+  padding: 24px;
+}
+
+.evaluation-result.critical {
+  border-color: rgba(179, 68, 63, 0.54);
+}
+
 .result-score {
   display: grid;
+  gap: 10px;
+}
+
+.result-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
 .result-score strong {
-  font-size: 54px;
+  font-size: clamp(88px, 13vw, 148px);
+  font-weight: 860;
   line-height: 1;
+}
+
+.score-caption {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.result-bar {
+  height: 16px;
+}
+
+.decision-banner {
+  border-radius: 8px;
+  min-height: 76px;
+  display: grid;
+  place-items: center;
+  margin-top: 8px;
+  padding: 14px 18px;
+  font-size: clamp(34px, 5vw, 58px);
+  font-weight: 880;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.decision-banner.urgent {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(179, 68, 63, 0.28);
+}
+
+.decision-banner.muted {
+  background: #eef1f1;
+  color: var(--muted);
 }
 
 .result-details {
   display: grid;
-  gap: 8px;
-  margin-top: 18px;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.risk-factor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.risk-factor {
+  border: 1px solid rgba(179, 68, 63, 0.30);
+  border-left: 6px solid var(--danger);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 18px 16px;
+  font-size: 22px;
+  font-weight: 840;
+  line-height: 1.12;
+  box-shadow: 0 10px 20px rgba(24, 38, 40, 0.08);
 }
 
 .pill-row {
