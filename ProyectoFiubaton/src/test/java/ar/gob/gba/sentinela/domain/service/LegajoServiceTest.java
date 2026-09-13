@@ -3,6 +3,7 @@ package ar.gob.gba.sentinela.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +54,24 @@ class LegajoServiceTest {
 		verify(alertaRepository, org.mockito.Mockito.times(2)).save(captor.capture());
 		assertThat(captor.getAllValues()).extracting(AlertaRevision::getIdNnya)
 				.containsExactly("NNYA-0004", "NNYA-0005");
+	}
+
+	@Test
+	void asegurarBandejaPendienteNoPisaAlertaExistente() {
+		NNyALegajoRepository legajoRepository = mock(NNyALegajoRepository.class);
+		AlertaRevisionRepository alertaRepository = mock(AlertaRevisionRepository.class);
+		LegajoService service = new LegajoService(legajoRepository, alertaRepository);
+		AlertaRevision alertaExistente = new AlertaRevision();
+		alertaExistente.setIdNnya("NNYA-0004");
+		alertaExistente.setScoreRiesgo(0.85);
+		alertaExistente.setEstado(AlertaRevision.EstadoAlerta.PENDIENTE);
+		when(alertaRepository.findFirstByIdNnyaAndEstadoInOrderByFechaCreacionDesc(any(), any()))
+				.thenReturn(Optional.of(alertaExistente));
+
+		service.asegurarBandejaPendiente(List.of(legajo("NNYA-0004")));
+
+		verify(alertaRepository, never()).save(any(AlertaRevision.class));
+		assertThat(alertaExistente.getScoreRiesgo()).isEqualTo(0.85);
 	}
 
 	private NNyALegajo legajo(String idNnya) {

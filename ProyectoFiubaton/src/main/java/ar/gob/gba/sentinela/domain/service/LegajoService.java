@@ -48,19 +48,18 @@ public class LegajoService {
 	}
 
 	private void asegurarAlertaPendienteBasica(NNyALegajo legajo) {
-		asegurarAlertaPendiente(legajo.getIdNnya(), 0.72,
-				"Seguimiento local persistido en BDD para " + legajo.getLocalidadPartido()
-						+ "; categorias=[seguimiento_local, evaluacion_pendiente]");
-	}
-
-	private void asegurarAlertaPendiente(String idNnya, Double score, String explicacion) {
-		AlertaRevision alerta = alertaRepository
-				.findFirstByIdNnyaAndEstadoInOrderByFechaCreacionDesc(idNnya,
+		boolean alreadyHasActiveAlert = alertaRepository
+				.findFirstByIdNnyaAndEstadoInOrderByFechaCreacionDesc(legajo.getIdNnya(),
 						List.of(AlertaRevision.EstadoAlerta.PENDIENTE, AlertaRevision.EstadoAlerta.EN_REVISION))
-				.orElseGet(AlertaRevision::new);
-		alerta.setIdNnya(idNnya);
-		alerta.setScoreRiesgo(score);
-		alerta.setExplicacion(explicacion);
+				.isPresent();
+		if (alreadyHasActiveAlert) {
+			return;
+		}
+		AlertaRevision alerta = new AlertaRevision();
+		alerta.setIdNnya(legajo.getIdNnya());
+		alerta.setScoreRiesgo(0.72);
+		alerta.setExplicacion("Seguimiento local persistido en BDD para " + legajo.getLocalidadPartido()
+				+ "; categorias=[seguimiento_local, evaluacion_pendiente]");
 		alerta.setEstado(AlertaRevision.EstadoAlerta.PENDIENTE);
 		alertaRepository.save(alerta);
 	}

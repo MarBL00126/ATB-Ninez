@@ -95,9 +95,13 @@ public class CargaFuentesService {
 				.findFirstByIdNnyaAndEstadoInOrderByFechaCreacionDesc(idNnya,
 						List.of(AlertaRevision.EstadoAlerta.PENDIENTE, AlertaRevision.EstadoAlerta.EN_REVISION))
 				.orElseGet(AlertaRevision::new);
+		double currentScore = alerta.getScoreRiesgo() == null ? 0.0 : alerta.getScoreRiesgo();
+		boolean improvesScore = score >= currentScore;
 		alerta.setIdNnya(idNnya);
-		alerta.setScoreRiesgo(Math.max(score, alerta.getScoreRiesgo() == null ? 0.0 : alerta.getScoreRiesgo()));
-		alerta.setExplicacion(explicacion);
+		alerta.setScoreRiesgo(Math.max(score, currentScore));
+		if (alerta.getExplicacion() == null || alerta.getExplicacion().isBlank() || improvesScore) {
+			alerta.setExplicacion(explicacion);
+		}
 		alerta.setEstado(AlertaRevision.EstadoAlerta.PENDIENTE);
 		alertaRepository.save(alerta);
 	}
