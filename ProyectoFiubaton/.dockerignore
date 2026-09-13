@@ -1,0 +1,15 @@
+.git
+.github
+.mvn/wrapper/maven-wrapper.jar
+target
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/venv
+**/chromadb_storage/*
+!**/chromadb_storage/.gitkeep
+sentinela-frontend
+sentinela-ml-service
+sentinela-nlp-service
+sentinela-ml-service/models/*.joblib
+sentinela-ml-service/models/*.json

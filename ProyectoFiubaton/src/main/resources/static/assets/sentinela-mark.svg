@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Sentinela">
+  <rect width="160" height="160" rx="28" fill="#f7fbfb"/>
+  <path d="M80 18 132 38v38c0 34-20 56-52 66-32-10-52-32-52-66V38l52-20Z" fill="#166a6f"/>
+  <path d="M80 33 118 48v29c0 25-14 42-38 51-24-9-38-26-38-51V48l38-15Z" fill="#ffffff"/>
+  <path d="M51 82c16-25 42-25 58 0-16 25-42 25-58 0Z" fill="#2c8c72"/>
+  <circle cx="80" cy="82" r="15" fill="#f2b84b"/>
+  <circle cx="80" cy="82" r="7" fill="#263238"/>
+</svg>

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ATB-Ninez</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#panel-dashboard" data-tab="dashboard" aria-label="ATB-Ninez">
+          <img src="/assets/sentinela-mark.svg" alt="">
+          <span>ATB-Ninez</span>
+        </a>
+        <nav class="nav" aria-label="Principal">
+          <button class="nav-item active" type="button" data-tab="dashboard">
+            <span class="nav-icon" aria-hidden="true">⌂</span>
+            <span>Panel</span>
+          </button>
+          <button class="nav-item" type="button" data-tab="cases">
+            <span class="nav-icon" aria-hidden="true">▦</span>
+            <span>Legajos</span>
+          </button>
+          <button class="nav-item" type="button" data-tab="alerts">
+            <span class="nav-icon" aria-hidden="true">!</span>
+            <span>Alertas</span>
+          </button>
+          <button class="nav-item" type="button" data-tab="intake">
+            <span class="nav-icon" aria-hidden="true">+</span>
+            <span>102/137</span>
+          </button>
+          <button class="nav-item" type="button" data-tab="evaluate">
+            <span class="nav-icon" aria-hidden="true">◎</span>
+            <span>Evaluar</span>
+          </button>
+        </nav>
+        <div class="session-box">
+          <label for="auth-token">Token</label>
+          <input id="auth-token" autocomplete="off" spellcheck="false">
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Consola operativa</p>
+            <h1>Alerta Temprana Buenos Aires</h1>
+          </div>
+          <div class="top-actions">
+            <input id="global-search" type="search" placeholder="Buscar token o localidad">
+            <button id="refresh-btn" class="icon-button" type="button" title="Actualizar" aria-label="Actualizar">↻</button>
+          </div>
+        </header>
+
+        <section id="panel-dashboard" class="panel active" data-panel="dashboard">
+          <div class="metrics-grid">
+            <article class="metric">
+              <span>Legajos</span>
+              <strong id="metric-cases">0</strong>
+            </article>
+            <article class="metric">
+              <span>Pendientes</span>
+              <strong id="metric-alerts">0</strong>
+            </article>
+            <article class="metric">
+              <span>Score mayor</span>
+              <strong id="metric-score">0.00</strong>
+            </article>
+            <article class="metric">
+              <span>Localidades</span>
+              <strong id="metric-localities">0</strong>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Bandeja prioritaria</h2>
+                <span id="sync-status" class="status-chip">Sincronizando</span>
+              </div>
+              <div id="priority-list" class="list"></div>
+            </section>
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Distribucion territorial</h2>
+              </div>
+              <div id="locality-list" class="locality-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="panel-cases" class="panel" data-panel="cases">
+          <div class="split-layout">
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Legajos</h2>
+                <button id="new-case-btn" class="ghost-button" type="button">Nuevo</button>
+              </div>
+              <div id="case-list" class="list"></div>
+            </section>
+
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2 id="case-editor-title">Legajo</h2>
+                <span id="selected-case-chip" class="status-chip muted">Sin seleccionar</span>
+              </div>
+              <form id="case-form" class="form-grid">
+                <label>
+                  Token NNyA
+                  <input name="idNnya" required placeholder="NNYA-0004">
+                </label>
+                <label>
+                  Edad
+                  <input name="edad" type="number" min="0" max="18" required>
+                </label>
+                <label>
+                  Sexo
+                  <select name="sexo">
+                    <option>F</option>
+                    <option>M</option>
+                    <option>X</option>
+                  </select>
+                </label>
+                <label>
+                  Localidad
+                  <input name="localidadPartido" required placeholder="Quilmes">
+                </label>
+                <label>
+                  Alta
+                  <input name="fechaAltaLegajo" type="date" required>
+                </label>
+                <button class="primary-button" type="submit">Guardar</button>
+              </form>
+
+              <form id="intervention-form" class="stacked-form">
+                <h3>Intervencion</h3>
+                <label>
+                  Profesional
+                  <input name="profesional" required value="equipo-demo">
+                </label>
+                <label>
+                  Tipo
+                  <select name="tipo">
+                    <option>VISITA</option>
+                    <option>DERIVACION</option>
+                    <option>SEGUIMIENTO</option>
+                    <option>CONTACTO_INSTITUCIONAL</option>
+                  </select>
+                </label>
+                <label>
+                  Observacion
+                  <textarea name="observacion" rows="4" required></textarea>
+                </label>
+                <button class="secondary-button" type="submit">Registrar</button>
+              </form>
+            </section>
+          </div>
+        </section>
+
+        <section id="panel-alerts" class="panel" data-panel="alerts">
+          <section class="workspace-panel">
+            <div class="section-heading">
+              <h2>Alertas</h2>
+              <select id="alert-filter" aria-label="Estado">
+                <option>PENDIENTE</option>
+                <option>EN_REVISION</option>
+                <option>CONFIRMADA</option>
+                <option>DESCARTADA</option>
+              </select>
+            </div>
+            <div id="alert-list" class="list"></div>
+          </section>
+        </section>
+
+        <section id="panel-intake" class="panel" data-panel="intake">
+          <div class="split-layout">
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Ficha 102/137</h2>
+                <span class="status-chip">Campos cerrados</span>
+              </div>
+              <form id="emergency-form" class="stacked-form no-top-border">
+                <div class="form-grid">
+                  <label>
+                    Token NNyA
+                    <input name="idNnya" required placeholder="NNYA-0001">
+                  </label>
+                  <label>
+                    Linea
+                    <select name="lineaOrigen">
+                      <option>102</option>
+                      <option>137</option>
+                    </select>
+                  </label>
+                  <label>
+                    Tipo de llamado
+                    <select name="tipoLlamado">
+                      <option>AUTOREPORTE</option>
+                      <option>TERCERO</option>
+                      <option>REINCIDENTE</option>
+                    </select>
+                  </label>
+                  <label>
+                    Motivo
+                    <select name="motivo">
+                      <option>VIOLENCIA_FISICA</option>
+                      <option>VIOLENCIA_SEXUAL</option>
+                      <option>GROOMING</option>
+                      <option>NEGLIGENCIA</option>
+                      <option>OTRO</option>
+                    </select>
+                  </label>
+                  <label>
+                    Urgencia
+                    <select name="urgenciaPercibida">
+                      <option>BAJA</option>
+                      <option>MEDIA</option>
+                      <option>ALTA</option>
+                      <option>DERIVACION_911</option>
+                    </select>
+                  </label>
+                  <label>
+                    Derivacion
+                    <select name="derivacionRealizada">
+                      <option>SERVICIO_LOCAL</option>
+                      <option>EQUIPO_MOVIL</option>
+                      <option>911</option>
+                      <option>NINGUNA</option>
+                    </select>
+                  </label>
+                  <label>
+                    Vinculo agresor
+                    <input name="vinculoAgresor" placeholder="Conviviente, familiar, tercero">
+                  </label>
+                  <label>
+                    Llamados previos
+                    <input name="cantidadLlamadosPreviosLinea102" type="number" min="0" value="1">
+                  </label>
+                  <label>
+                    Legajo RUNNA previo
+                    <select name="legajoPrevioEnRunna">
+                      <option value="false">No</option>
+                      <option value="true">Si</option>
+                    </select>
+                  </label>
+                  <label>
+                    Meses ultima intervencion
+                    <input name="mesesDesdeUltimaIntervencion" type="number" min="0" value="12">
+                  </label>
+                </div>
+                <button class="primary-button" type="submit">Registrar ficha</button>
+              </form>
+            </section>
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Criterio de uso</h2>
+              </div>
+              <div class="guidance-list">
+                <p>La ficha prioriza campos cerrados para que el scoring no dependa de transcripciones ni interpretacion libre de audio.</p>
+                <p>El registro viaja asociado al token. La reidentificacion queda fuera del flujo automatico y requiere accion humana autorizada.</p>
+                <p>Justicia, Policia y Registro Civil quedan como fuentes de segunda fase por sensibilidad y complejidad institucional.</p>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="panel-evaluate" class="panel" data-panel="evaluate">
+          <div class="split-layout">
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Evaluacion</h2>
+                <span class="status-chip">ML + NLP</span>
+              </div>
+              <form id="evaluation-form" class="stacked-form">
+                <label>
+                  Token NNyA
+                  <input name="idNnya" required placeholder="NNYA-0001">
+                </label>
+                <div class="form-grid compact">
+                  <label>
+                    Ausentismo
+                    <input name="ausentismo_dias_ultimo_mes" type="number" min="0" max="31" value="8">
+                  </label>
+                  <label>
+                    Llamados 102
+                    <input name="cantidad_llamados_previos_linea102" type="number" min="0" value="2">
+                  </label>
+                  <label>
+                    Guardia
+                    <input name="consultas_guardia_lesiones_pococlaras_ult12m" type="number" min="0" value="1">
+                  </label>
+                  <label>
+                    Meses ultima interv.
+                    <input name="meses_desde_ultima_intervencion" type="number" min="0" value="3">
+                  </label>
+                </div>
+                <div class="toggle-grid">
+                  <label><input type="checkbox" name="desercion_o_abandono_intermitente"> Desercion</label>
+                  <label><input type="checkbox" name="lesiones_reportadas_por_docentes"> Lesiones</label>
+                  <label><input type="checkbox" name="atencion_por_autolesion_o_consumo"> Autolesion</label>
+                  <label><input type="checkbox" name="denuncia_violencia_domestica_en_el_hogar"> Denuncia VD</label>
+                </div>
+                <label>
+                  Observacion
+                  <textarea name="observacion" rows="5">Ausencias reiteradas y aislamiento progresivo en actividades escolares.</textarea>
+                </label>
+                <button class="primary-button" type="submit">Evaluar</button>
+              </form>
+            </section>
+            <section class="workspace-panel result-panel">
+              <div class="section-heading">
+                <h2>Resultado</h2>
+              </div>
+              <div id="evaluation-result" class="empty-state">Sin evaluacion activa</div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="case-template">
+      <button class="case-row" type="button">
+        <span class="row-main"></span>
+        <span class="row-meta"></span>
+      </button>
+    </template>
+
+    <script src="/config.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

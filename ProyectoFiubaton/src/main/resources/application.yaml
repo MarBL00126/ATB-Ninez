@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: sentinela-core
+  datasource:
+    url: "${SPRING_DATASOURCE_URL:jdbc:h2:mem:sentinela;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1}"
+    username: "${SPRING_DATASOURCE_USERNAME:sa}"
+    password: "${SPRING_DATASOURCE_PASSWORD:}"
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  flyway:
+    enabled: false
+
+sentinela:
+  cors:
+    allowed-origins: "${ATB_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}"
+  jwt:
+    demo-token-format: "Bearer usuario:ROL1,ROL2:localidad"
+  identity:
+    salt: "${SENTINELA_IDENTITY_SALT:salt-provincial-dev}"
+  services:
+    external-ai-enabled: "${SENTINELA_EXTERNAL_AI_ENABLED:false}"
+    ml-url: "${SENTINELA_ML_URL:http://localhost:8001}"
+    nlp-url: "${SENTINELA_NLP_URL:http://localhost:8002}"
+
+server:
+  port: "${PORT:8080}"
