@@ -58,14 +58,17 @@ public class LegajoController {
 		}
 		String scopedLocalidad = requireScopedLocalidad(authentication);
 		if (requestedLocalidad != null && !requestedLocalidad.isBlank()
-				&& !requestedLocalidad.equalsIgnoreCase(scopedLocalidad)) {
+				&& !sameLocalidad(requestedLocalidad, scopedLocalidad)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 		return scopedLocalidad;
 	}
 
 	private void requireAccess(Authentication authentication, String localidad) {
-		if (!permissionEvaluator.canAccessLocalidad(authentication, localidad)) {
+		if (permissionEvaluator.hasGlobalAccess(authentication)) {
+			return;
+		}
+		if (!sameLocalidad(requireScopedLocalidad(authentication), localidad)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 	}
@@ -76,5 +79,13 @@ public class LegajoController {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 		return scopedLocalidad;
+	}
+
+	private boolean sameLocalidad(String left, String right) {
+		return normalize(left).equalsIgnoreCase(normalize(right));
+	}
+
+	private String normalize(String value) {
+		return value == null ? "" : value.trim();
 	}
 }

@@ -72,8 +72,21 @@ public class IngestaController {
 
 	private void requireLegajoAccess(String idNnya, Authentication authentication) {
 		NNyALegajo legajo = legajoService.obtener(idNnya);
-		if (!permissionEvaluator.canAccessLocalidad(authentication, legajo.getLocalidadPartido())) {
+		if (!canAccessLocalidad(authentication, legajo.getLocalidadPartido())) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
+	}
+
+	private boolean canAccessLocalidad(Authentication authentication, String localidad) {
+		if (permissionEvaluator.hasGlobalAccess(authentication)) {
+			return true;
+		}
+		String scopedLocalidad = permissionEvaluator.scopedLocalidad(authentication);
+		return scopedLocalidad != null && !scopedLocalidad.isBlank()
+				&& normalize(scopedLocalidad).equalsIgnoreCase(normalize(localidad));
+	}
+
+	private String normalize(String value) {
+		return value == null ? "" : value.trim();
 	}
 }

@@ -54,11 +54,18 @@ public class AlertaController {
 			Authentication authentication) {
 		AlertaRevision alerta = repository.findById(id).orElseThrow();
 		NNyALegajo legajo = legajoService.obtener(alerta.getIdNnya());
-		if (!permissionEvaluator.canAccessLocalidad(authentication, legajo.getLocalidadPartido())) {
+		if (!canAccessLocalidad(authentication, legajo.getLocalidadPartido())) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 		alerta.setEstado(estado);
 		return repository.save(alerta);
+	}
+
+	private boolean canAccessLocalidad(Authentication authentication, String localidad) {
+		if (permissionEvaluator.hasGlobalAccess(authentication)) {
+			return true;
+		}
+		return normalize(requireScopedLocalidad(authentication)).equalsIgnoreCase(normalize(localidad));
 	}
 
 	private String requireScopedLocalidad(Authentication authentication) {
@@ -67,5 +74,9 @@ public class AlertaController {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 		return scopedLocalidad;
+	}
+
+	private String normalize(String value) {
+		return value == null ? "" : value.trim();
 	}
 }
