@@ -44,7 +44,10 @@ public class OrquestadorEvaluacionService {
 		MlPredictResponseDto ml = predict(idNnya, features);
 		NlpSemanticResponseDto nlp = analyze(idNnya, observacion);
 
-		AlertaRevision alerta = new AlertaRevision();
+		AlertaRevision alerta = alertaRepository
+				.findFirstByIdNnyaAndEstadoInOrderByFechaCreacionDesc(idNnya,
+						List.of(AlertaRevision.EstadoAlerta.PENDIENTE, AlertaRevision.EstadoAlerta.EN_REVISION))
+				.orElseGet(AlertaRevision::new);
 		alerta.setIdNnya(idNnya);
 		alerta.setScoreRiesgo(ml.scoreRiesgo());
 		alerta.setExplicacion(explicar(ml, nlp));

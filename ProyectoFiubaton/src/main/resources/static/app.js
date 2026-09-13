@@ -174,7 +174,8 @@ function bindForms() {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    const result = response || localEvaluation(payload);
+    if (!response) return;
+    const result = response;
     renderEvaluation(result, payload);
     if (result.idNnya && normalizeRiskScore(result.scoreRiesgo) >= 0.7) {
       upsertLocal(state.alertas, {
