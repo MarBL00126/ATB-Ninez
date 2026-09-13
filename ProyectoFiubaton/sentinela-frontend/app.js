@@ -174,8 +174,7 @@ function bindForms() {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    if (!response) return;
-    const result = response;
+    const result = response || localEvaluation(payload);
     renderEvaluation(result, payload);
     if (result.idNnya && normalizeRiskScore(result.scoreRiesgo) >= 0.7) {
       upsertLocal(state.alertas, {
@@ -362,50 +361,29 @@ function selectCase(idNnya) {
 function renderEvaluation(result, evaluation = {}) {
   const score = normalizeRiskScore(result.scoreRiesgo);
   const scorePoints = riskScorePoints(result.scoreRiesgo);
-  const features = evaluation.features || {};
   const categories = extractCategories(result.explicacion);
   const container = byId("evaluation-result");
-  const legajo = state.legajos.find((item) => item.idNnya === result.idNnya);
-  const localidad = legajo?.localidadPartido || currentProfile().localidad;
-  const edad = legajo?.edad ?? "s/d";
-  const sources = buildRiskSources(features);
-  const timeline = buildTimeline(features, categories);
-  const isCritical = score >= 0.8;
-  container.className = `case-dossier ${isCritical ? "critical" : ""}`;
+  const isCritical = score >= 0.7;
+  const factors = categories.filter((category) => category !== "revision_humana" && category !== "sin_categoria_clara").slice(0, 4);
+  container.className = `evaluation-result ${isCritical ? "critical" : ""}`;
   container.innerHTML = `
-    <div class="dossier-header">
-      <div>
-        <span class="eyebrow">Legajo</span>
-        <h3>${escapeHtml(result.idNnya || "NNYA")}</h3>
-        <p>${escapeHtml(localidad)} · Edad estimada: ${escapeHtml(edad)} anos</p>
+    <div class="result-score">
+      <div class="result-kicker">
+        <strong class="case-token">${escapeHtml(result.idNnya || "NNYA")}</strong>
       </div>
-      <div class="dossier-score">
-        <span>Score de riesgo</span>
-        <strong>${scorePoints}<small>/100</small></strong>
+      <strong>${scorePoints}</strong>
+      <span class="score-caption">Puntos de riesgo</span>
+      <div class="score-bar result-bar" style="--score-width:${Math.round(score * 100)}%"><span></span></div>
+    </div>
+    <div class="decision-banner ${isCritical ? "urgent" : "muted"}">${isCritical ? "Derivar" : "Revisar"}</div>
+    <div class="result-details">
+      <span class="eyebrow">Factores detectados</span>
+      <div class="risk-factor-grid">
+        ${(factors.length ? factors : ["revision_humana"]).map((item) => `
+          <article class="risk-factor">${escapeHtml(labelCategory(item))}</article>
+        `).join("")}
       </div>
     </div>
-    <div class="critical-banner">
-      <strong>${score >= 0.7 ? "Umbral critico superado" : "Seguimiento recomendado"}</strong>
-      <span>${escapeHtml(summaryForCategories(categories))}</span>
-    </div>
-    <div class="source-grid">
-      ${sources.map(renderSourceCard).join("")}
-    </div>
-    <div class="timeline-block">
-      <span class="eyebrow">Linea de tiempo de antecedentes</span>
-      ${timeline.map((item) => `
-        <div class="timeline-row">
-          <strong>${escapeHtml(item.when)}</strong>
-          <span>${escapeHtml(item.text)}</span>
-        </div>
-      `).join("")}
-    </div>
-    <div class="action-grid">
-      <button class="secondary-button" type="button">Revelar identidad y actuar</button>
-      <button class="primary-button" type="button">Derivar como prioritario</button>
-      <button class="ghost-button" type="button">Cerrar sin riesgo confirmado</button>
-    </div>
-    <p class="audit-note">Cada apertura de identidad queda registrada en el log de auditoria.</p>
   `;
 }
 
@@ -418,6 +396,7 @@ function buildRiskSources(features) {
   const calls = Number(features.cantidad_llamados_previos_linea102 || 0);
   const guard = Number(features.consultas_guardia_lesiones_pococlaras_ult12m || 0);
   const months = Number(features.meses_desde_ultima_intervencion || 0);
+  const recentIntervention = months > 0 && months <= 3;
   return [
     {
       title: "Educacion",
@@ -430,14 +409,24 @@ function buildRiskSources(features) {
       detail: guard > 0 ? `${guard} consulta(s) de guardia` : "Sin alertas clinicas cargadas",
     },
     {
-      title: "Linea 102",
-      level: calls >= 3 || months <= 3 ? "Alto" : calls > 0 ? "Medio" : "Bajo",
-      detail: `${calls} llamado(s) registrados`,
+      title: "Linea 102/137",
+      level: calls >= 3 || recentIntervention ? "Alto" : calls > 0 ? "Medio" : "Bajo",
+      detail: `${calls} llamado(s) + ${months} mes(es) desde intervencion`,
     },
     {
       title: "Desarrollo social",
-      level: "Bajo",
-      detail: "Sin cortes informados",
+      level: recentIntervention ? "Medio" : "Bajo",
+      detail: "AUH/programas y vivienda a validar",
+    },
+    {
+      title: "Justicia/Seguridad",
+      level: features.denuncia_violencia_domestica_en_el_hogar ? "Alto" : "Bajo",
+      detail: features.denuncia_violencia_domestica_en_el_hogar ? "Denuncia VD vinculada" : "Fase 2 restringida",
+    },
+    {
+      title: "Clubes/Colonias",
+      level: absences >= 8 ? "Medio" : "Bajo",
+      detail: "Indicadores comunitarios ampliables",
     },
   ];
 }

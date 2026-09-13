@@ -30,6 +30,10 @@
             <span class="nav-icon" aria-hidden="true">+</span>
             <span>102/137</span>
           </button>
+          <button class="nav-item" type="button" data-tab="model">
+            <span class="nav-icon" aria-hidden="true">◇</span>
+            <span>Modelo</span>
+          </button>
           <button class="nav-item" type="button" data-tab="evaluate">
             <span class="nav-icon" aria-hidden="true">◎</span>
             <span>Evaluar</span>
@@ -271,6 +275,77 @@
           </div>
         </section>
 
+        <section id="panel-model" class="panel" data-panel="model">
+          <div class="model-grid">
+            <section class="workspace-panel model-hero">
+              <div>
+                <p class="eyebrow">Arquitectura de intervencion</p>
+                <h2>Copiloto provincial para detectar riesgo temprano, priorizar bandejas y sostener decisiones humanas.</h2>
+              </div>
+              <div class="model-pill-row">
+                <span class="model-pill">Token irreversible</span>
+                <span class="model-pill">RUNNA como backbone</span>
+                <span class="model-pill">Humano en el circuito</span>
+                <span class="model-pill">Auditoria de sesgos</span>
+              </div>
+            </section>
+
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Fuentes y fases</h2>
+              </div>
+              <div class="source-phase-grid">
+                <article class="source-phase live"><span>Piloto</span><strong>Educacion</strong><p>Ausentismo, abandono, rendimiento, convivencia y reportes docentes.</p></article>
+                <article class="source-phase live"><span>Piloto</span><strong>Salud</strong><p>Controles, vacunacion, guardias, lesiones, salud mental y consumo.</p></article>
+                <article class="source-phase live"><span>Piloto</span><strong>RUNNA + Servicios</strong><p>Legajos previos, intervenciones, seguimiento local y zonal.</p></article>
+                <article class="source-phase live"><span>Piloto</span><strong>Linea 102/137</strong><p>Tipo de llamado, motivo, urgencia, reincidencia y derivacion.</p></article>
+                <article class="source-phase"><span>Fase 1</span><strong>ANSES / Desarrollo Social</strong><p>AUH, programas, vulnerabilidad habitacional y composicion familiar.</p></article>
+                <article class="source-phase restricted"><span>Fase 2</span><strong>Justicia / Policia / Registro Civil</strong><p>Datos restringidos, solo bajo convenio, trazabilidad y minimo necesario.</p></article>
+                <article class="source-phase"><span>Ampliable</span><strong>Clubes y colonias</strong><p>Ausencias repetidas e indicadores comunitarios no policializados.</p></article>
+                <article class="source-phase context"><span>Contexto</span><strong>INDEC agregado</strong><p>Solo estadistica territorial, nunca predictor nominal de un NNyA.</p></article>
+              </div>
+            </section>
+
+            <section class="workspace-panel wide-panel">
+              <div class="section-heading">
+                <h2>Matriz de variables</h2>
+                <span class="status-chip">No usa proxies sensibles</span>
+              </div>
+              <div class="variable-matrix">
+                <article class="variable-group"><strong>Educacion</strong><p>Ausencias, desercion, cambios de escuela, rendimiento, convivencia, lesiones observadas.</p></article>
+                <article class="variable-group"><strong>Salud</strong><p>Controles incompletos, vacunacion atrasada, guardias por lesiones poco claras, bajo peso, salud mental.</p></article>
+                <article class="variable-group"><strong>102/137</strong><p>Autoreporte o tercero, reincidencia, motivo, urgencia, vinculo agresor y derivacion realizada.</p></article>
+                <article class="variable-group"><strong>Desarrollo social</strong><p>AUH/programas, continuidad de beneficios, vivienda y adultos responsables.</p></article>
+                <article class="variable-group"><strong>Justicia y seguridad</strong><p>Denuncias por violencia o abuso y antecedentes convivenciales bajo acceso restringido.</p></article>
+                <article class="variable-group"><strong>NLP cualitativo</strong><p>Estructura aglutinada, desvinculada o bajo estres cronico desde observaciones profesionales.</p></article>
+              </div>
+            </section>
+
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Garantias</h2>
+              </div>
+              <div class="compliance-list">
+                <p><strong>Ley 25.326.</strong> Finalidad estricta, minimizacion de datos y supresion cuando no se confirma riesgo.</p>
+                <p><strong>Cero decision automatica.</strong> El algoritmo prioriza; el equipo profesional confirma, descarta o deriva.</p>
+                <p><strong>Identidad protegida.</strong> Tokenizacion con salt, boveda separada y reidentificacion registrada.</p>
+                <p><strong>Auditoria.</strong> Revision periodica de falsos positivos y negativos por territorio y nivel socioeconomico.</p>
+              </div>
+            </section>
+
+            <section class="workspace-panel">
+              <div class="section-heading">
+                <h2>Hoja de ruta</h2>
+              </div>
+              <ol class="roadmap-list">
+                <li><strong>Fase 0:</strong> piloto municipal con Educacion, Salud, RUNNA y 102/137.</li>
+                <li><strong>Fase 1:</strong> expansion territorial y monitoreo longitudinal con decaimiento temporal del score.</li>
+                <li><strong>Fase 2:</strong> integracion restringida con Justicia, Policia y Registro Civil.</li>
+              </ol>
+            </section>
+          </div>
+        </section>
+
         <section id="panel-evaluate" class="panel" data-panel="evaluate">
           <div class="split-layout evaluation-layout">
             <section class="workspace-panel">
@@ -294,22 +369,22 @@
                   </label>
                   <label>
                     Guardia
-                    <input name="consultas_guardia_lesiones_pococlaras_ult12m" type="number" min="0" value="1">
+                    <input name="consultas_guardia_lesiones_pococlaras_ult12m" type="number" min="0" value="2">
                   </label>
                   <label>
                     Meses ultima interv.
-                    <input name="meses_desde_ultima_intervencion" type="number" min="0" value="3">
+                    <input name="meses_desde_ultima_intervencion" type="number" min="0" value="0">
                   </label>
                 </div>
                 <div class="toggle-grid">
-                  <label><input type="checkbox" name="desercion_o_abandono_intermitente"> Desercion</label>
-                  <label><input type="checkbox" name="lesiones_reportadas_por_docentes"> Lesiones</label>
+                  <label><input type="checkbox" name="desercion_o_abandono_intermitente" checked> Desercion</label>
+                  <label><input type="checkbox" name="lesiones_reportadas_por_docentes" checked> Lesiones</label>
                   <label><input type="checkbox" name="atencion_por_autolesion_o_consumo"> Autolesion</label>
-                  <label><input type="checkbox" name="denuncia_violencia_domestica_en_el_hogar"> Denuncia VD</label>
+                  <label><input type="checkbox" name="denuncia_violencia_domestica_en_el_hogar" checked> Denuncia VD</label>
                 </div>
                 <label>
                   Observacion
-                  <textarea name="observacion" rows="5">Ausencias reiteradas y aislamiento progresivo en actividades escolares.</textarea>
+                  <textarea name="observacion" rows="5">El padre alcoholico de Tobias, lo golpea y abusa constantemente en los ultimos meses, tiene un ausentismo y depresion muy marcada segun sus docentes (ademas de lesiones y quemaduras evidentes)</textarea>
                 </label>
                 <button class="primary-button" type="submit">Evaluar</button>
               </form>
