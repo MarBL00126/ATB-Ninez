@@ -1,8 +1,8 @@
 const DEMO_PROFILES = {
-  admin: { label: "Admin provincial", roles: "ADMIN,AUDITOR", localidad: "Buenos Aires", scope: "Acceso provincial" },
-  isidro: { label: "Asistente social - Isidro Casanova", roles: "TRABAJADOR_SOCIAL", localidad: "Isidro Casanova", scope: "Municipio: Isidro Casanova" },
-  quilmes: { label: "Asistente social - Quilmes", roles: "TRABAJADOR_SOCIAL", localidad: "Quilmes", scope: "Municipio: Quilmes" },
-  moreno: { label: "Asistente social - Moreno", roles: "TRABAJADOR_SOCIAL", localidad: "Moreno", scope: "Municipio: Moreno" },
+  admin: { label: "Admin provincial", roles: "ADMIN,AUDITOR", localidad: "Buenos Aires", scope: "Acceso provincial", caseId: "NNYA-0004" },
+  isidro: { label: "Asistente social - Isidro Casanova", roles: "TRABAJADOR_SOCIAL", localidad: "Isidro Casanova", scope: "Municipio: Isidro Casanova", caseId: "NNYA-0004" },
+  quilmes: { label: "Asistente social - Quilmes", roles: "TRABAJADOR_SOCIAL", localidad: "Quilmes", scope: "Municipio: Quilmes", caseId: "NNYA-0001" },
+  moreno: { label: "Asistente social - Moreno", roles: "TRABAJADOR_SOCIAL", localidad: "Moreno", scope: "Municipio: Moreno", caseId: "NNYA-0002" },
 };
 const API_BASE_URL = window.ATB_CONFIG?.API_BASE_URL || "";
 
@@ -83,6 +83,7 @@ function configureSession() {
       roles: "TRABAJADOR_SOCIAL",
       localidad: requestedLocalidad,
       scope: `Municipio: ${requestedLocalidad}`,
+      caseId: "NNYA-0004",
     };
     const option = document.createElement("option");
     option.value = id;
@@ -100,6 +101,19 @@ function applyProfile(profileId) {
   state.token = `Bearer demo:${profile.roles}:${profile.localidad}`;
   byId("session-profile").value = profileId;
   byId("session-scope").textContent = profile.scope;
+  applyDemoCaseDefaults(profile);
+}
+
+function applyDemoCaseDefaults(profile) {
+  const caseId = profile.caseId || "NNYA-0004";
+  const evaluationForm = byId("evaluation-form");
+  const emergencyForm = byId("emergency-form");
+  if (evaluationForm?.elements.idNnya) {
+    evaluationForm.elements.idNnya.value = caseId;
+  }
+  if (emergencyForm?.elements.idNnya) {
+    emergencyForm.elements.idNnya.value = caseId;
+  }
 }
 
 function bindForms() {
@@ -235,7 +249,7 @@ async function apiJson(path, options = {}) {
     return await response.json();
   } catch (error) {
     console.warn(`API fallback for ${path}:`, error.message);
-    renderStatus(error.status === 403 ? "Sin permiso para esta vista" : method === "GET" ? "Modo demo" : "No se pudo guardar");
+    renderStatus(error.status === 403 ? "Sin permiso: use un legajo de su municipio o vista Admin" : method === "GET" ? "Modo demo" : "No se pudo guardar");
     return null;
   }
 }
