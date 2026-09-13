@@ -216,17 +216,13 @@ async function loadAll() {
 
 async function loadLegajos() {
   const data = await apiJson("/api/v1/legajos");
-  state.legajos = Array.isArray(data) && data.length ? data : demoLegajos;
+  state.legajos = Array.isArray(data) ? data : demoLegajos;
 }
 
 async function loadAlertas() {
   const estado = byId("alert-filter").value || "PENDIENTE";
   const data = await apiJson(`/api/v1/alertas?estado=${encodeURIComponent(estado)}`);
-  if (Array.isArray(data)) {
-    state.alertas = data.length ? data : demoAlertas.filter((alerta) => alerta.estado === estado);
-  } else {
-    state.alertas = demoAlertas.filter((alerta) => alerta.estado === estado);
-  }
+  state.alertas = Array.isArray(data) ? data : [];
   renderAll("Actualizado");
 }
 
