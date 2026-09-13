@@ -24,7 +24,6 @@ public class LegajoService {
 				: repository.findByLocalidadPartidoIgnoreCase(localidad);
 	}
 
-	@AuditedAction("LECTURA_LEGAJO")
 	@Transactional(readOnly = true)
 	public NNyALegajo obtener(String idNnya) {
 		return repository.findById(idNnya).orElseThrow();
