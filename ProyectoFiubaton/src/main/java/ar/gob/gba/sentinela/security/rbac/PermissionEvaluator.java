@@ -17,7 +17,8 @@ public class PermissionEvaluator {
 			return true;
 		}
 		Object details = authentication.getDetails();
-		return details instanceof UserAccessContext context && context.localidad().equalsIgnoreCase(localidad);
+		return details instanceof UserAccessContext context
+				&& normalize(context.localidad()).equalsIgnoreCase(normalize(localidad));
 	}
 
 	public boolean hasGlobalAccess(Authentication authentication) {
@@ -39,5 +40,9 @@ public class PermissionEvaluator {
 		Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 		String expected = "ROLE_" + role.name();
 		return authorities.stream().anyMatch(authority -> expected.equals(authority.getAuthority()));
+	}
+
+	private String normalize(String value) {
+		return value == null ? "" : value.trim();
 	}
 }

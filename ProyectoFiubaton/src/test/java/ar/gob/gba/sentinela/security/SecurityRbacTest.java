@@ -22,6 +22,16 @@ class SecurityRbacTest {
 	}
 
 	@Test
+	void adminTokenWithMultipleRolesHasGlobalAccess() {
+		Authentication authentication = tokenProvider.authenticate("Bearer demo:ADMIN,AUDITOR:Buenos Aires");
+
+		assertThat(permissionEvaluator.hasRole(authentication, Role.ADMIN)).isTrue();
+		assertThat(permissionEvaluator.hasRole(authentication, Role.AUDITOR)).isTrue();
+		assertThat(permissionEvaluator.hasGlobalAccess(authentication)).isTrue();
+		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Isidro Casanova")).isTrue();
+	}
+
+	@Test
 	void operatorIsLimitedToOwnLocalidad() {
 		Authentication authentication = tokenProvider.authenticate("Bearer leo:OPERADOR_102:Quilmes");
 
@@ -37,6 +47,14 @@ class SecurityRbacTest {
 		assertThat(permissionEvaluator.scopedLocalidad(authentication)).isEqualTo("Moreno");
 		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Moreno")).isTrue();
 		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Quilmes")).isFalse();
+	}
+
+	@Test
+	void socialWorkerScopeIgnoresAccidentalWhitespace() {
+		Authentication authentication = tokenProvider.authenticate("Bearer sol:TRABAJADOR_SOCIAL: Isidro Casanova ");
+
+		assertThat(permissionEvaluator.scopedLocalidad(authentication)).isEqualTo("Isidro Casanova");
+		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Isidro Casanova ")).isTrue();
 	}
 
 	@Test

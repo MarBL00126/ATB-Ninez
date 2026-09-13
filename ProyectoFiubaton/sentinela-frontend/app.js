@@ -225,12 +225,14 @@ async function apiJson(path, options = {}) {
       },
     });
     if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
+      const error = new Error(`${response.status} ${response.statusText}`);
+      error.status = response.status;
+      throw error;
     }
     return await response.json();
   } catch (error) {
     console.warn(`API fallback for ${path}:`, error.message);
-    renderStatus(method === "GET" ? "Modo demo" : "No se pudo guardar");
+    renderStatus(error.status === 403 ? "Sin permiso para esta vista" : method === "GET" ? "Modo demo" : "No se pudo guardar");
     return null;
   }
 }
@@ -337,7 +339,8 @@ function renderAlertRow(alerta) {
 function bindAlertActions(root) {
   root.querySelectorAll("[data-alert][data-state]").forEach((button) => {
     button.addEventListener("click", async () => {
-      await apiJson(`/api/v1/alertas/${button.dataset.alert}/estado?estado=${button.dataset.state}`, { method: "PATCH" });
+      const updated = await apiJson(`/api/v1/alertas/${button.dataset.alert}/estado?estado=${button.dataset.state}`, { method: "PATCH" });
+      if (!updated) return;
       state.alertas = state.alertas.filter((alerta) => String(alerta.id) !== String(button.dataset.alert));
       renderAll("Alerta actualizada");
     });

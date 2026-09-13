@@ -30,7 +30,7 @@ public class JwtTokenProvider {
 		UsernamePasswordAuthenticationToken authentication =
 				new UsernamePasswordAuthenticationToken(parts[0], token, authorities);
 		if (parts.length == 3 && !parts[2].isBlank()) {
-			authentication.setDetails(new UserAccessContext(parts[2]));
+			authentication.setDetails(new UserAccessContext(parts[2].trim()));
 		}
 		return authentication;
 	}
