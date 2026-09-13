@@ -174,9 +174,12 @@ function bindForms() {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    if (!response) return;
-    const result = response;
+    const result = response || localEvaluation(payload);
     renderEvaluation(result, payload);
+    if (!response) {
+      renderStatus("Vista previa sin guardar");
+      return;
+    }
     if (result.idNnya && normalizeRiskScore(result.scoreRiesgo) >= 0.7) {
       upsertLocal(state.alertas, {
         id: result.id || Date.now(),

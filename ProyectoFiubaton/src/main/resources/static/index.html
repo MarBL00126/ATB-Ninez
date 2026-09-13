@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ATB-Ninez</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/styles.css?v=20260913-evaluate">
   </head>
   <body>
     <div class="app-shell">
@@ -121,7 +121,7 @@
               </div>
               <form id="case-form" class="form-grid">
                 <label>
-                  Token NNyA
+                  Legajo NNyA
                   <input name="idNnya" required placeholder="NNYA-0004">
                 </label>
                 <label>
@@ -197,7 +197,7 @@
               <form id="emergency-form" class="stacked-form no-top-border">
                 <div class="form-grid">
                   <label>
-                    Token NNyA
+                    Legajo NNyA
                     <input name="idNnya" required placeholder="NNYA-0001">
                   </label>
                   <label>
@@ -272,7 +272,7 @@
               </div>
               <div class="guidance-list">
                 <p>La ficha prioriza campos cerrados para que el scoring no dependa de transcripciones ni interpretacion libre de audio.</p>
-                <p>El registro viaja asociado al token. La reidentificacion queda fuera del flujo automatico y requiere accion humana autorizada.</p>
+                <p>El registro viaja asociado a un ID protegido. La reidentificacion queda fuera del flujo automatico y requiere accion humana autorizada.</p>
                 <p>Justicia, Policia y Registro Civil quedan como fuentes de segunda fase por sensibilidad y complejidad institucional.</p>
               </div>
             </section>
@@ -336,7 +336,7 @@
                 <h2>Copiloto provincial para detectar riesgo temprano, priorizar bandejas y sostener decisiones humanas.</h2>
               </div>
               <div class="model-pill-row">
-                <span class="model-pill">Token irreversible</span>
+                <span class="model-pill">ID irreversible</span>
                 <span class="model-pill">RUNNA como backbone</span>
                 <span class="model-pill">Humano en el circuito</span>
                 <span class="model-pill">Auditoria de sesgos</span>
@@ -381,7 +381,7 @@
               <div class="compliance-list">
                 <p><strong>Ley 25.326.</strong> Finalidad estricta, minimizacion de datos y supresion cuando no se confirma riesgo.</p>
                 <p><strong>Cero decision automatica.</strong> El algoritmo prioriza; el equipo profesional confirma, descarta o deriva.</p>
-                <p><strong>Identidad protegida.</strong> Tokenizacion con salt, boveda separada y reidentificacion registrada.</p>
+                <p><strong>Identidad protegida.</strong> Seudonimizacion con salt, boveda separada y reidentificacion registrada.</p>
                 <p><strong>Auditoria.</strong> Revision periodica de falsos positivos y negativos por territorio y nivel socioeconomico.</p>
               </div>
             </section>
@@ -408,8 +408,8 @@
               </div>
               <form id="evaluation-form" class="stacked-form">
                 <label>
-                  Token NNyA
-                  <input name="idNnya" required placeholder="NNYA-0001">
+                  Legajo NNyA
+                  <input name="idNnya" required value="NNYA-0004" placeholder="NNYA-0004">
                 </label>
                 <div class="form-grid compact">
                   <label>
@@ -460,6 +460,6 @@
       </button>
     </template>
 
-    <script src="/app.js"></script>
+    <script src="/app.js?v=20260913-evaluate"></script>
   </body>
 </html>
