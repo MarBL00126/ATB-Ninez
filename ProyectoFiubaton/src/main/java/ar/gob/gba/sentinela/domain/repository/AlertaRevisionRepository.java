@@ -1,5 +1,6 @@
 package ar.gob.gba.sentinela.domain.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import ar.gob.gba.sentinela.domain.entity.AlertaRevision;
@@ -9,4 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AlertaRevisionRepository extends JpaRepository<AlertaRevision, Long> {
 
 	List<AlertaRevision> findByEstadoOrderByFechaCreacionDesc(EstadoAlerta estado);
+
+	List<AlertaRevision> findByEstadoAndIdNnyaInOrderByFechaCreacionDesc(EstadoAlerta estado,
+			Collection<String> idsNnya);
 }

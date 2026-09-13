@@ -28,4 +28,22 @@ class SecurityRbacTest {
 		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Quilmes")).isTrue();
 		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Moreno")).isFalse();
 	}
+
+	@Test
+	void socialWorkerHasMunicipalityScope() {
+		Authentication authentication = tokenProvider.authenticate("Bearer sol:TRABAJADOR_SOCIAL:Moreno");
+
+		assertThat(permissionEvaluator.hasGlobalAccess(authentication)).isFalse();
+		assertThat(permissionEvaluator.scopedLocalidad(authentication)).isEqualTo("Moreno");
+		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Moreno")).isTrue();
+		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Quilmes")).isFalse();
+	}
+
+	@Test
+	void auditorHasGlobalAccess() {
+		Authentication authentication = tokenProvider.authenticate("Bearer ana:AUDITOR:Quilmes");
+
+		assertThat(permissionEvaluator.hasGlobalAccess(authentication)).isTrue();
+		assertThat(permissionEvaluator.canAccessLocalidad(authentication, "Moreno")).isTrue();
+	}
 }

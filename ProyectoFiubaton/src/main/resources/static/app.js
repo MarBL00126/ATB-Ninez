@@ -1,7 +1,13 @@
-const DEFAULT_TOKEN = "Bearer demo:ADMIN,AUDITOR,TRABAJADOR_SOCIAL:Quilmes";
+const DEMO_PROFILES = {
+  admin: { label: "Admin provincial", roles: "ADMIN,AUDITOR", localidad: "Buenos Aires", scope: "Acceso provincial" },
+  isidro: { label: "Asistente social - Isidro Casanova", roles: "TRABAJADOR_SOCIAL", localidad: "Isidro Casanova", scope: "Municipio: Isidro Casanova" },
+  quilmes: { label: "Asistente social - Quilmes", roles: "TRABAJADOR_SOCIAL", localidad: "Quilmes", scope: "Municipio: Quilmes" },
+  moreno: { label: "Asistente social - Moreno", roles: "TRABAJADOR_SOCIAL", localidad: "Moreno", scope: "Municipio: Moreno" },
+};
 
 const state = {
-  token: localStorage.getItem("sentinela-token") || DEFAULT_TOKEN,
+  profileId: "admin",
+  token: "",
   legajos: [],
   alertas: [],
   selectedCaseId: null,
@@ -34,7 +40,7 @@ const demoAlertas = [
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
-  byId("auth-token").value = state.token;
+  configureSession();
   bindNavigation();
   bindForms();
   loadAll();
@@ -49,9 +55,10 @@ function bindNavigation() {
     state.filter = event.target.value.trim().toLowerCase();
     renderAll();
   });
-  byId("auth-token").addEventListener("change", (event) => {
-    state.token = event.target.value.trim() || DEFAULT_TOKEN;
-    localStorage.setItem("sentinela-token", state.token);
+  byId("session-profile").addEventListener("change", (event) => {
+    applyProfile(event.target.value);
+    localStorage.setItem("sentinela-profile", state.profileId);
+    state.selectedCaseId = null;
     loadAll();
   });
   byId("alert-filter").addEventListener("change", () => loadAlertas());
@@ -64,6 +71,37 @@ function bindNavigation() {
   loadVectorHealth();
 }
 
+function configureSession() {
+  localStorage.removeItem("sentinela-token");
+  const params = new URLSearchParams(window.location.search);
+  const requestedProfile = params.get("vista") || params.get("perfil") || localStorage.getItem("sentinela-profile") || "admin";
+  const requestedLocalidad = params.get("localidad");
+  if (requestedLocalidad) {
+    const id = "custom";
+    DEMO_PROFILES[id] = {
+      label: `Asistente social - ${requestedLocalidad}`,
+      roles: "TRABAJADOR_SOCIAL",
+      localidad: requestedLocalidad,
+      scope: `Municipio: ${requestedLocalidad}`,
+    };
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = DEMO_PROFILES[id].label;
+    byId("session-profile").appendChild(option);
+    applyProfile(id);
+    return;
+  }
+  applyProfile(DEMO_PROFILES[requestedProfile] ? requestedProfile : "admin");
+}
+
+function applyProfile(profileId) {
+  const profile = DEMO_PROFILES[profileId] || DEMO_PROFILES.admin;
+  state.profileId = profileId;
+  state.token = `Bearer demo:${profile.roles}:${profile.localidad}`;
+  byId("session-profile").value = profileId;
+  byId("session-scope").textContent = profile.scope;
+}
+
 function bindForms() {
   byId("case-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -74,8 +112,9 @@ function bindForms() {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    upsertLocal(state.legajos, saved || payload, "idNnya");
-    state.selectedCaseId = (saved || payload).idNnya;
+    if (!saved) return;
+    upsertLocal(state.legajos, saved, "idNnya");
+    state.selectedCaseId = saved.idNnya;
     renderAll("Guardado");
   });
 
@@ -106,10 +145,11 @@ function bindForms() {
     payload.mesesDesdeUltimaIntervencion = Number(payload.mesesDesdeUltimaIntervencion || 0);
     payload.legajoPrevioEnRunna = payload.legajoPrevioEnRunna === "true";
     payload.origenLlamadoPredominante = payload.tipoLlamado;
-    await apiJson("/api/v1/ingesta/linea-102", {
+    const saved = await apiJson("/api/v1/ingesta/linea-102", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    if (!saved) return;
     renderStatus(`Ficha ${payload.lineaOrigen} registrada`);
     const matchingCase = state.legajos.find((legajo) => legajo.idNnya === payload.idNnya);
     if (!matchingCase) {
@@ -134,9 +174,10 @@ function bindForms() {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    const result = response || localEvaluation(payload);
-    renderEvaluation(result);
-    if (result.idNnya && result.scoreRiesgo >= 0.7) {
+    if (!response) return;
+    const result = response;
+    renderEvaluation(result, payload);
+    if (result.idNnya && normalizeRiskScore(result.scoreRiesgo) >= 0.7) {
       upsertLocal(state.alertas, {
         id: result.id || Date.now(),
         idNnya: result.idNnya,
@@ -207,6 +248,7 @@ async function loadAlertas() {
 }
 
 async function apiJson(path, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
   try {
     const response = await fetch(path, {
       ...options,
@@ -222,7 +264,7 @@ async function apiJson(path, options = {}) {
     return await response.json();
   } catch (error) {
     console.warn(`API fallback for ${path}:`, error.message);
-    renderStatus("Modo demo");
+    renderStatus(method === "GET" ? "Modo demo" : "No se pudo guardar");
     return null;
   }
 }
@@ -240,17 +282,19 @@ function renderAll(statusText) {
 
 function renderMetrics() {
   const pending = state.alertas.filter((alerta) => alerta.estado === "PENDIENTE").length;
-  const maxScore = state.alertas.reduce((max, alerta) => Math.max(max, Number(alerta.scoreRiesgo || 0)), 0);
+  const maxScore = state.alertas.reduce((max, alerta) => Math.max(max, normalizeRiskScore(alerta.scoreRiesgo)), 0);
   const localities = new Set(state.legajos.map((legajo) => legajo.localidadPartido).filter(Boolean));
   byId("metric-cases").textContent = state.legajos.length;
   byId("metric-alerts").textContent = pending;
-  byId("metric-score").textContent = maxScore.toFixed(2);
+  byId("metric-score").textContent = riskScorePoints(maxScore);
   byId("metric-localities").textContent = localities.size;
 }
 
 function renderPriorityList() {
   const list = byId("priority-list");
-  const items = [...state.alertas].sort((a, b) => Number(b.scoreRiesgo || 0) - Number(a.scoreRiesgo || 0)).slice(0, 5);
+  const items = [...state.alertas]
+    .sort((a, b) => normalizeRiskScore(b.scoreRiesgo) - normalizeRiskScore(a.scoreRiesgo))
+    .slice(0, 5);
   list.innerHTML = items.length ? items.map(renderAlertRow).join("") : emptyMarkup("Sin alertas prioritarias");
   bindAlertActions(list);
 }
@@ -297,16 +341,19 @@ function renderAlerts() {
 }
 
 function renderAlertRow(alerta) {
-  const score = Number(alerta.scoreRiesgo || 0);
+  const score = normalizeRiskScore(alerta.scoreRiesgo);
+  const scorePoints = riskScorePoints(alerta.scoreRiesgo);
+  const categories = extractCategories(alerta.explicacion).slice(0, 3);
   const severity = score >= 0.8 ? "severity-high" : score >= 0.65 ? "severity-mid" : "";
   return `
     <article class="alert-row">
       <div class="row-main">
         <span>${escapeHtml(alerta.idNnya || "")}</span>
-        <span class="${severity}">${score.toFixed(2)}</span>
+        <span class="${severity}">${scorePoints}</span>
       </div>
       <div class="score-bar" style="--score-width:${Math.round(score * 100)}%"><span></span></div>
-      <span class="row-meta">${escapeHtml(alerta.explicacion || "Sin explicacion")} · ${formatDateTime(alerta.fechaCreacion)}</span>
+      <span class="row-meta">${formatDateTime(alerta.fechaCreacion)}</span>
+      <div class="causal-row">${categories.map((item) => `<span class="causal-chip">${escapeHtml(labelCategory(item))}</span>`).join("")}</div>
       <div class="pill-row">
         ${["EN_REVISION", "CONFIRMADA", "DESCARTADA"].map((estado) => `
           <button class="ghost-button" type="button" data-alert="${alerta.id}" data-state="${estado}">${labelEstado(estado)}</button>
@@ -341,28 +388,116 @@ function selectCase(idNnya) {
   renderCases();
 }
 
-function renderEvaluation(result) {
-  const score = Number(result.scoreRiesgo || 0);
-  const scorePoints = Math.round(score * 100);
+function renderEvaluation(result, evaluation = {}) {
+  const score = normalizeRiskScore(result.scoreRiesgo);
+  const scorePoints = riskScorePoints(result.scoreRiesgo);
+  const features = evaluation.features || {};
   const categories = extractCategories(result.explicacion);
   const container = byId("evaluation-result");
+  const legajo = state.legajos.find((item) => item.idNnya === result.idNnya);
+  const localidad = legajo?.localidadPartido || currentProfile().localidad;
+  const edad = legajo?.edad ?? "s/d";
+  const sources = buildRiskSources(features);
+  const timeline = buildTimeline(features, categories);
   const isCritical = score >= 0.8;
-  container.className = `evaluation-result ${isCritical ? "critical" : ""}`;
+  container.className = `case-dossier ${isCritical ? "critical" : ""}`;
   container.innerHTML = `
-    <div class="result-score">
-      <div class="result-kicker">
-        <span class="eyebrow">${escapeHtml(result.idNnya || "NNYA")}</span>
+    <div class="dossier-header">
+      <div>
+        <span class="eyebrow">Legajo</span>
+        <h3>${escapeHtml(result.idNnya || "NNYA")}</h3>
+        <p>${escapeHtml(localidad)} · Edad estimada: ${escapeHtml(edad)} anos</p>
       </div>
-      <strong class="${isCritical ? "severity-high" : score >= 0.65 ? "severity-mid" : ""}">${scorePoints}</strong>
-      <span class="score-caption">puntos de riesgo</span>
-      <div class="score-bar result-bar" style="--score-width:${Math.round(score * 100)}%"><span></span></div>
-      <div class="decision-banner ${score >= 0.7 ? "urgent" : "muted"}">${score >= 0.7 ? "Derivar" : "Monitorear"}</div>
+      <div class="dossier-score">
+        <span>Score de riesgo</span>
+        <strong>${scorePoints}<small>/100</small></strong>
+      </div>
     </div>
-    <div class="result-details">
-      <span class="eyebrow">Factores detectados</span>
-      <div class="risk-factor-grid">${categories.map((item) => `<span class="risk-factor">${escapeHtml(labelCategory(item))}</span>`).join("")}</div>
+    <div class="critical-banner">
+      <strong>${score >= 0.7 ? "Umbral critico superado" : "Seguimiento recomendado"}</strong>
+      <span>${escapeHtml(summaryForCategories(categories))}</span>
     </div>
+    <div class="source-grid">
+      ${sources.map(renderSourceCard).join("")}
+    </div>
+    <div class="timeline-block">
+      <span class="eyebrow">Linea de tiempo de antecedentes</span>
+      ${timeline.map((item) => `
+        <div class="timeline-row">
+          <strong>${escapeHtml(item.when)}</strong>
+          <span>${escapeHtml(item.text)}</span>
+        </div>
+      `).join("")}
+    </div>
+    <div class="action-grid">
+      <button class="secondary-button" type="button">Revelar identidad y actuar</button>
+      <button class="primary-button" type="button">Derivar como prioritario</button>
+      <button class="ghost-button" type="button">Cerrar sin riesgo confirmado</button>
+    </div>
+    <p class="audit-note">Cada apertura de identidad queda registrada en el log de auditoria.</p>
   `;
+}
+
+function currentProfile() {
+  return DEMO_PROFILES[state.profileId] || DEMO_PROFILES.admin;
+}
+
+function buildRiskSources(features) {
+  const absences = Number(features.ausentismo_dias_ultimo_mes || 0);
+  const calls = Number(features.cantidad_llamados_previos_linea102 || 0);
+  const guard = Number(features.consultas_guardia_lesiones_pococlaras_ult12m || 0);
+  const months = Number(features.meses_desde_ultima_intervencion || 0);
+  return [
+    {
+      title: "Educacion",
+      level: absences >= 8 || features.desercion_o_abandono_intermitente || features.lesiones_reportadas_por_docentes ? "Alto" : "Bajo",
+      detail: `${absences} ausencias este mes${features.desercion_o_abandono_intermitente ? " + desercion" : ""}`,
+    },
+    {
+      title: "Salud",
+      level: features.atencion_por_autolesion_o_consumo ? "Alto" : guard > 0 ? "Medio" : "Bajo",
+      detail: guard > 0 ? `${guard} consulta(s) de guardia` : "Sin alertas clinicas cargadas",
+    },
+    {
+      title: "Linea 102",
+      level: calls >= 3 || months <= 3 ? "Alto" : calls > 0 ? "Medio" : "Bajo",
+      detail: `${calls} llamado(s) registrados`,
+    },
+    {
+      title: "Desarrollo social",
+      level: "Bajo",
+      detail: "Sin cortes informados",
+    },
+  ];
+}
+
+function renderSourceCard(source) {
+  return `
+    <article class="source-card ${source.level.toLowerCase()}">
+      <span>${escapeHtml(source.title)}</span>
+      <strong>${escapeHtml(source.level)}</strong>
+      <p>${escapeHtml(source.detail)}</p>
+    </article>
+  `;
+}
+
+function buildTimeline(features, categories) {
+  const rows = [];
+  if (Number(features.cantidad_llamados_previos_linea102 || 0) > 0) {
+    rows.push({ when: "Hace 2 dias", text: "Llamado a Linea 102 por adulto referente." });
+  }
+  if (categories.includes("ausentismo") || Number(features.ausentismo_dias_ultimo_mes || 0) > 0) {
+    rows.push({ when: "Hace 3 sem.", text: "Reporte escolar por ausentismo o rendimiento irregular." });
+  }
+  rows.push({ when: "Hace 5 meses", text: "Legajo previo en RUNNA cerrado sin confirmacion de riesgo." });
+  return rows;
+}
+
+function summaryForCategories(categories) {
+  if (!categories.length) {
+    return "Requiere evaluacion humana prioritaria.";
+  }
+  return `${categories.map(labelCategory).join(" + ")}. Requiere evaluacion humana prioritaria.`;
 }
 
 function labelCategory(value) {
@@ -379,7 +514,7 @@ function renderPaperResults(results) {
     <article class="alert-row">
       <div class="row-main">
         <span>${escapeHtml(item.title || "Paper")}</span>
-        <span>${Number(item.score || 0).toFixed(2)}</span>
+        <span>${riskScorePoints(item.score)}</span>
       </div>
       <span class="row-meta">${escapeHtml([item.authors, item.year, item.source].filter(Boolean).join(" · "))}</span>
       <p>${escapeHtml(item.content || "")}</p>
@@ -432,9 +567,34 @@ function inferTextCategories(text) {
 }
 
 function extractCategories(text) {
-  const match = String(text || "").match(/categorias=\[([^\]]*)]/);
-  if (!match) return ["scoring", "revision_humana"];
-  return match[1].split(",").map((item) => item.trim()).filter(Boolean);
+  const value = String(text || "");
+  const match = value.match(/categorias=\[([^\]]*)]/);
+  if (match) {
+    return match[1].split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  return inferCategoriesFromText(value);
+}
+
+function inferCategoriesFromText(text) {
+  const value = String(text || "").toLowerCase();
+  const categories = [];
+  if (value.includes("ausent")) categories.push("ausentismo");
+  if (value.includes("aislam") || value.includes("aislad")) categories.push("aislamiento");
+  if (value.includes("lesion") || value.includes("golpe") || value.includes("violencia")) categories.push("violencia_fisica");
+  if (value.includes("102") || value.includes("llamado")) categories.push("llamados_102");
+  if (value.includes("neglig") || value.includes("hambre") || value.includes("higiene")) categories.push("negligencia");
+  if (value.includes("intervencion")) categories.push("intervencion_reciente");
+  return categories.length ? categories : ["revision_humana"];
+}
+
+function normalizeRiskScore(value) {
+  const score = Number(value || 0);
+  if (!Number.isFinite(score)) return 0;
+  return Math.max(0, Math.min(score > 1 ? score / 100 : score, 1));
+}
+
+function riskScorePoints(value) {
+  return Math.round(normalizeRiskScore(value) * 100);
 }
 
 function filteredLegajos() {

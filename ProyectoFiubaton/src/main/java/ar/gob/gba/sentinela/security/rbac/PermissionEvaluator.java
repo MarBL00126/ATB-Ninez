@@ -20,7 +20,22 @@ public class PermissionEvaluator {
 		return details instanceof UserAccessContext context && context.localidad().equalsIgnoreCase(localidad);
 	}
 
+	public boolean hasGlobalAccess(Authentication authentication) {
+		return hasRole(authentication, Role.ADMIN) || hasRole(authentication, Role.AUDITOR);
+	}
+
+	public String scopedLocalidad(Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return null;
+		}
+		Object details = authentication.getDetails();
+		return details instanceof UserAccessContext context ? context.localidad() : null;
+	}
+
 	public boolean hasRole(Authentication authentication, Role role) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return false;
+		}
 		Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 		String expected = "ROLE_" + role.name();
 		return authorities.stream().anyMatch(authority -> expected.equals(authority.getAuthority()));

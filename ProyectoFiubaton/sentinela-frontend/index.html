@@ -36,8 +36,14 @@
           </button>
         </nav>
         <div class="session-box">
-          <label for="auth-token">Token</label>
-          <input id="auth-token" autocomplete="off" spellcheck="false">
+          <label for="session-profile">Vista</label>
+          <select id="session-profile">
+            <option value="admin">Admin provincial</option>
+            <option value="isidro">Asistente social - Isidro Casanova</option>
+            <option value="quilmes">Asistente social - Quilmes</option>
+            <option value="moreno">Asistente social - Moreno</option>
+          </select>
+          <span id="session-scope" class="session-scope">Acceso provincial</span>
         </div>
       </aside>
 
@@ -48,7 +54,7 @@
             <h1>Alerta Temprana Buenos Aires</h1>
           </div>
           <div class="top-actions">
-            <input id="global-search" type="search" placeholder="Buscar token o localidad">
+            <input id="global-search" type="search" placeholder="Buscar legajo o localidad">
             <button id="refresh-btn" class="icon-button" type="button" title="Actualizar" aria-label="Actualizar">↻</button>
           </div>
         </header>
@@ -65,7 +71,7 @@
             </article>
             <article class="metric">
               <span>Score mayor</span>
-              <strong id="metric-score">0.00</strong>
+              <strong id="metric-score">0</strong>
             </article>
             <article class="metric">
               <span>Localidades</span>
@@ -266,7 +272,7 @@
         </section>
 
         <section id="panel-evaluate" class="panel" data-panel="evaluate">
-          <div class="split-layout">
+          <div class="split-layout evaluation-layout">
             <section class="workspace-panel">
               <div class="section-heading">
                 <h2>Evaluacion</h2>
